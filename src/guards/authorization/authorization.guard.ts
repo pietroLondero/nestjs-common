@@ -1,22 +1,38 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { RolesService } from '@pietro/auth/dist/roles/roles.service';
+import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
+import { BaseServiceInterface, PermissionQuery } from '../../interfaces';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
-  constructor(private userService: any, private getCategoriesFn: (request: any) => Promise<string[]>) { }
+  constructor(
+    @Inject('BaseService')
+    private readonly baseService: BaseServiceInterface
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const categories = await this.getCategoriesFn(context.switchToHttp().getRequest());
+    const id = context.switchToHttp().getRequest().params.id;
+    const userId = context.switchToHttp().getRequest().params.userId;
 
-    if (!categories || categories.length === 0) {
-      return true; // No specific categories defined, allow access
+    const requestMethod = context.switchToHttp().getRequest().method;
+
+    const query: PermissionQuery = {};
+    switch (requestMethod) {
+      case 'GET':
+        query.read = true;
+        break;
+      case 'POST':
+      case 'PUT':
+        query.write = true;
+        break;
+      case 'DELETE':
+        query.delete = true;
+        break;
+      default:
+        break;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const userId = request.user.id; // Assuming you have user information in the request
-
-    const userCategories = await this.userService.getUserCategories(userId);
-
-    return categories.some(category => userCategories.includes(category));
+    const a = await this.baseService.checkPermissionRbac(userId, id, requestMethod);
+    // const b = 
+    return a ? a : await this.baseService.checkPermissionAbac(userId, id, query);
+    // return a || b;
   }
 }

@@ -5,6 +5,8 @@ import { PermissionGuard } from "./guards";
 import { SortOrder } from "./enums";
 import { BaseResponseDto, GenericFilterDto } from "./dto";
 import { CurrentUser } from "./decorators";
+import { PermissionQuery, BaseServiceInterface } from "./interfaces";
+import { sha1 } from './services/sha1.service'
 
 export {
   CommonModule,
@@ -14,5 +16,8 @@ export {
   SortOrder,
   BaseResponseDto,
   GenericFilterDto,
-  CurrentUser
+  CurrentUser,
+  PermissionQuery,
+  BaseServiceInterface,
+  sha1
 }
